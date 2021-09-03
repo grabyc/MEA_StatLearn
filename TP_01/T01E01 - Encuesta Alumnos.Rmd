@@ -1,0 +1,132 @@
+---
+title: "TP Preprocesamiento con Tidyverse"
+subtitle: "Aprendizaje Estadístico"
+author: "Laura Pérez - Gabriel Raby"
+date: "9/2/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA, background = NA, results='asis',  warning = FALSE)
+
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+packages <- c("tidyverse", "magrittr", "hrbrthemes")
+ipak(packages)
+
+```
+
+# Ejercicio 1
+
+En la ciudad de General Roca se llevó a cabo una encuesta con el objetivo de estudiar el hábito alimenticio y de consumo de alcohol de los estudiantes de los colegios secundarios. Los datos se encuentran en el archivo *encuesta.csv*.
+
+#### 1) Importe los datos y seleccione las columnas 8 al 11 y 47 al 51. Muestre la tabla como un tibble y luego como un marco de datos. ¿Qué diferencias observa?
+
+El primer segmento de código carga el dataset delimitado por *;*, y crea un nuevo conjunto de datos *casos_1_1* que contiene las columnas seleccionadas.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# carga de dataset encuesta 
+casos <- read_csv2("data/encuesta.csv")
+
+# selección de columnas
+casos_1_1 <- casos %>%
+  select(c(8:11, 47:51))
+```
+
+Esta sentencia presenta el conjunto *casos_1_1* como un **tibble**
+
+```{r echo=TRUE, message=FALSE, paged.print=FALSE}
+as_tibble(casos_1_1)
+```
+
+Y esta sentencia presenta el conjunto *casos_1_1* como un **data.frame**
+
+```{r echo=TRUE, message=FALSE, paged.print=FALSE}
+as.data.frame(casos_1_1)
+```
+
+Puede observarse la diferencia en la presentación en pantalla de la información del conjunto de datos:
+
+* el **tibble** tiene un modo de presentación más elegante que muestra solo las primeras 10 filas, y todas las columnas que caben en pantalla. 
+
+* además, el **tibble** presenta el nombre de cada columna junto con su tipo.
+
+* el **data.frame** presenta todas las columnas del dataset, lo que accidentalmente cuando se trabaja con conjuntos grandes, desborda la información en pantalla.
+
+
+#### 2) Filtre los que respondieron “si” a la pregunta “consumiste alcohol” y calcule el porcentaje correspondiente. Separe en Mujeres y Varones contabilice la cantidad y calcule los porcentajes.
+
+```{r echo=TRUE, message=TRUE}
+#encuestados que consumen alcohol
+casos_1_2 <- casos_1_1 %>%
+  filter(consumiste_alcohol == 'Sí') 
+
+#porcentaje de encuestados que consumen alcohol
+(casos_1_2 %>%
+  summarize((n() / count(casos_1_1)) * 100))[[1]]
+
+#encuestados que consumen alcohol separados por sexo
+casos_1_2_M <- casos_1_2 %>%
+  filter(Sexo == 'Masculino') 
+
+casos_1_2_F <- casos_1_2 %>%
+  filter(Sexo == 'Femenino') 
+
+#porcentaje de encuestados que consumen alcohol separados por sexo
+(casos_1_2_M %>%
+  summarize((n() / count(casos_1_2)) * 100))[[1]]
+
+(casos_1_2_F %>%
+  summarize((n() / count(casos_1_2)) * 100))[[1]]
+```
+
+#### 3) Sobre los estudiantes que respondieron que “si” a la pregunta “consumiste alcohol” realice un histograma con la variable edad y luego separe los mismos por sexo. Observa diferencias?
+
+```{r echo=TRUE, message=TRUE}
+casos_1_2 %>% 
+  drop_na(Sexo) %>%
+  ggplot(aes(x=Edad, fill=Sexo)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = 'identity') + 
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    theme_ipsum() +
+    labs(fill="") + 
+    facet_wrap(~ Sexo)
+```
+
+La prinicipal diferencia se observa en la moda de cada sexo, mientras que en los varones ocurre a los 17 años, en las mujeres se da a los 16.
+
+#### 4) Se hizo un análisis respecto de la apreciación de consumo en exceso de alcohol, sobre la pregunta “tuviste un exceso de alcohol” calcule y obtenga el porcentaje de los que respondieron sí.
+
+```{r echo=TRUE, message=TRUE}
+casos_1_4 <- casos_1_2 %>%
+  drop_na(Sexo) %>%
+  filter(tuviste_un_exceso_de_alcohol == 'Sí') 
+
+(casos_1_4 %>%
+  summarize((n() / count(casos_1_2)) * 100))[[1]]
+```
+
+###### i.- Tenga en cuenta que los años superiores son los correspondientes a los cursos de 4, 5 y 6, mientras que el ciclo inferior y básico 1, 2 y 3. Cree una nueva columna y mediante un condicional de tidyverse clasifique en superior y básico.
+
+```{r echo=TRUE, message=TRUE}
+casos_1_4 %<>%
+  mutate(ciclo = case_when(
+    Año %in% (1:3) ~ "Básico",
+    Año %in% (4:6) ~ "Superior"
+  ))
+```
+
+###### ii.- calcule el porcentaje de estudiantes de acuerdo al sexo y al nivel del curso
+
+```{r echo=TRUE, message=TRUE}
+casos_1_4 %>%
+  group_by(Sexo, ciclo) %>%
+  summarise( (n() / count(casos_1_4)) * 100)
+```
