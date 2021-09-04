@@ -67,4 +67,34 @@ casos_1_4 %<>%
 
 casos_1_4 %>%
   group_by(Sexo, ciclo) %>%
-  summarise( (n() / count(casos_1_4)) * 100)
+  summarize(porcentaje = (n() / count(casos_1_4)) * 100) %>%
+  ggplot(aes(x=Sexo, y=porcentaje$n, fill=Sexo)) +
+    geom_bar(stat="identity", alpha=.6) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    facet_wrap( ~ ciclo) + 
+    theme_ipsum() +
+    labs(fill="") 
+
+## ej 1.5
+casos_1_2 %>%
+  drop_na(Sexo) %>%
+  mutate(ciclo = case_when(
+    Año %in% (1:3) ~ "Básico",
+    Año %in% (4:6) ~ "Superior"
+  )) %>%
+  group_by(Sexo, ciclo) %>%
+  summarize(alc_exs = sum(tuviste_un_exceso_de_alcohol == 'Sí') / count(casos_1_2),
+            alc_anio = sum(consumiste_alcohol_este_anio == 'Sí') / count(casos_1_2),
+            alc_mes = sum(consumiste_alcohol_este_mes == 'Sí') / count(casos_1_2),
+            alc_semana = sum(consumiste_alcohol_esta_semana == 'Sí') / count(casos_1_2)) %>%
+  pivot_longer(!c("Sexo", "ciclo"), names_to = "grupo", values_to = "porcentaje") %>%
+  ggplot(aes(x=reorder(grupo, porcentaje$n), y=porcentaje$n, fill=Sexo)) +
+    geom_segment(aes(x = reorder(grupo, porcentaje$n), 
+                     xend = reorder(grupo, porcentaje$n), 
+                     y = 0, yend = porcentaje$n),
+                 color = "gray", lwd = 1.5) +
+    geom_point(size = 4, pch = 21, bg = 4, col = "gray") +
+    coord_flip() +
+    facet_wrap(Sexo ~ ciclo) + 
+    theme_ipsum() +
+    labs(fill="") + xlab("Variable") + ylab("Porcentaje")
