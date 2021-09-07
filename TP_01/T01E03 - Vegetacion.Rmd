@@ -83,4 +83,13 @@ ggplot(sitios_3_1, aes(x=factor(SITIO, levels = SITIO), y=cant_especies)) +
 
 #### 3) Qué sitios tiene mayor número de especies.
 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sitios_3_1 %>%
+  ggplot( aes(x=reorder(SITIO, cant_especies), y=cant_especies)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+```
+  
 #### 4) cómo está la tabla dispuesta? De qué manera considera que debería ser mejor su disposición para analizar y graficar?
