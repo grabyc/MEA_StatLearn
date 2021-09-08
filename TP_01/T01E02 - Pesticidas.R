@@ -50,7 +50,6 @@ ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) +
   stat_smooth(method = "lm", col = "grey")
 
 ## ej 2.10
-
 muestras_2_10 <- muestras_2_6 %>%
   group_by(ANIO, CHACRA, Nombre, ARBOL, FRUTO) %>%
   summarise(deposito_inicial = CONC[TIEMPO==0],
