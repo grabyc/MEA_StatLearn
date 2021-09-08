@@ -60,11 +60,13 @@ ggplot(sitios_3_1, aes(x=factor(SITIO, levels = SITIO), y=cant_especies)) +
             color="black", fontface="bold",alpha=0.6, size=2.5, angle=labels$bar_angle, inherit.aes = FALSE ) 
 
 ## ej 3.3
-
-  
 sitios_3_1 %>%
   ggplot( aes(x=reorder(SITIO, cant_especies), y=cant_especies)) +
     geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
     coord_flip() +
     xlab("") +
     theme_bw()
+
+## ej 3.4
+sitios %>%
+  pivot_longer(!SITIO, names_to = "Especie", values_to = "Presencia")

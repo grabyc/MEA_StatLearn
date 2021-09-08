@@ -93,3 +93,12 @@ sitios_3_1 %>%
 ```
   
 #### 4) cómo está la tabla dispuesta? De qué manera considera que debería ser mejor su disposición para analizar y graficar?
+
+Esta tabla en la que cada fila es un sitio, y las columnas corresponden a especies vegetales, mientras que el valor para una especie en un sitio representa la presencia (*1*) o ausencia (*0*) de dicha especie en la unidad muestral, está **dispuesta a lo ancho**.
+
+Si bien, como ya se vio en los incisos previos, se pudo analizar y graficar la información de la tabla con esta disposición, podría transformarse a una **disposición a lo largo**, en la que existirían más filas que columnas. Esta transformación, posiblemente, podría simplificar algunas tareas de análisis y visualización.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sitios %>%
+  pivot_longer(!SITIO, names_to = "Especie", values_to = "Presencia")
+```
