@@ -46,4 +46,40 @@ ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) +
   scale_y_log10() +
   labs(color = "Pesticida (log 10)") +
   facet_wrap(vars(Nombre), dir = "v") +
-  theme_ipsum()
+  theme_ipsum() +
+  stat_smooth(method = "lm", col = "grey")
+
+## ej 2.10
+
+muestras_2_10 <- muestras_2_6 %>%
+  group_by(ANIO, CHACRA, Nombre, ARBOL, FRUTO) %>%
+  summarise(deposito_inicial = CONC[TIEMPO==0],
+            tasa_degradacion = (max(CONC)-min(CONC))/max(TIEMPO)) 
+
+muestras_2_10 %>%
+  ggplot( aes(x=Nombre, y=deposito_inicial, fill=Nombre)) +
+  geom_boxplot() +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  xlab("Pesticida") + ylab("Deposito Inicial")
+
+muestras_2_10 %>%
+  ggplot( aes(x=Nombre, y=tasa_degradacion, fill=Nombre)) +
+  geom_boxplot() +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  xlab("Pesticida") + ylab("Tasa Degradación")
+
+
+muestras_2_10 %>%
+  group_by(Nombre) %>%
+  summarise(prom_deposito_inicial = mean(deposito_inicial),
+            prom_tasa_degradacion = mean(tasa_degradacion))
