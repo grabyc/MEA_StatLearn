@@ -1,0 +1,104 @@
+---
+title: "TP Preprocesamiento con Tidyverse"
+subtitle: "Ejercicio 3 - Vegetación"
+author: "Laura Pérez - Gabriel Raby"
+date: "9/2/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA, background = NA, results='asis',  warning = FALSE)
+
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+
+packages <- c("tidyverse", "magrittr", "hrbrthemes")
+ipak(packages)
+
+```
+
+# Ejercicio 1
+
+El archivo *VEGETACION.csv* contiene datos referidos a la caracterización de 23 unidades muestrales (Sitios) de la zona cordillerana de Villa La Angostura, departamento Los Lagos, Provincia de Neuquén. Dicha caracterización se realizó en función de la composición florística de los sitios registrándose la presencia o ausencia de 84 especies vegetales indicadas como E1-E84. Los objetivos de la experiencia fueron determinar asociaciones de sitios de acuerdo a la coexistencia de grupos de especies, describir la estructura de la vegetación de la región en estudio, determinar agrupamientos de especies (comunidades), analizar la relación existente entre ellas e interpretar sus similitudes y diferencias por acción de factores ambientales. Para responder al primer objetivo:
+
+#### 1) Utilizando herramientas de tidyverse calcule la frecuencia del total de especies de acuerdo a los sitios.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# carga de dataset vegetacion 
+sitios <- read_csv2("data/VEGETACION.csv") 
+
+sitios_3_1 <- sitios %>%
+  rowwise(SITIO) %>%
+  summarise(cant_especies=sum(c_across(E1:E84)))
+
+sitios_3_1
+```
+
+#### 2) Realice un gráfico de acuerdo al total de especies por sitios.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# dataframe adicional para etiquetas
+labels <- sitios_3_1
+labels$id <- strtoi(sub('.', '', sitios_3_1$SITIO))
+
+# calcula el angulo de las etiquetas
+num_bars <- nrow(labels)
+angle <-  90 - 360 * (labels$id-0.5) /num_bars     
+
+# calcula la alienacion de las etiqeutas: der o izq
+labels$horiz_just<-ifelse( angle < -90, 1, 0)
+
+# ajusta las etiquetas para hacerlas legibles
+labels$bar_angle<-ifelse(angle < -90, angle+180, angle)
+
+
+ggplot(sitios_3_1, aes(x=factor(SITIO, levels = SITIO), y=cant_especies)) +       
+  geom_bar(stat="identity", fill=alpha("skyblue", 0.7)) +
+  ylim(-15,45) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1,4), "cm")
+  ) +
+  coord_polar(start = 0) + 
+  geom_text(data=labels, 
+            aes(x=id, y=cant_especies+5, 
+                label=paste(SITIO, " (", cant_especies, ")"), 
+                hjust=horiz_just), 
+            color="black", 
+            fontface="bold",
+            alpha=0.6, 
+            size=2.5, 
+            angle=labels$bar_angle, 
+            inherit.aes = FALSE ) 
+```
+
+#### 3) Qué sitios tiene mayor número de especies.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sitios_3_1 %>%
+  ggplot( aes(x=reorder(SITIO, cant_especies), y=cant_especies)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+```
+  
+#### 4) cómo está la tabla dispuesta? De qué manera considera que debería ser mejor su disposición para analizar y graficar?
+
+Esta tabla en la que cada fila es un sitio, y las columnas corresponden a especies vegetales, mientras que el valor para una especie en un sitio representa la presencia (*1*) o ausencia (*0*) de dicha especie en la unidad muestral, está **dispuesta a lo ancho**.
+
+Si bien, como ya se vio en los incisos previos, se pudo analizar y graficar la información de la tabla con esta disposición, podría transformarse a una **disposición a lo largo**, en la que existirían más filas que columnas. Esta transformación, posiblemente, podría simplificar algunas tareas de análisis y visualización.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sitios %>%
+  pivot_longer(!SITIO, names_to = "Especie", values_to = "Presencia")
+```
