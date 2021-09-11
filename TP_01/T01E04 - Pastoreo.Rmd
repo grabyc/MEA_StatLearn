@@ -1,0 +1,118 @@
+---
+title: "TP Preprocesamiento con Tidyverse"
+subtitle: "Aprendizaje Estadístico"
+author: "Laura Pérez - Gabriel Raby"
+date: "9/2/2021"
+output:
+html_document:
+df_print: paged
+---
+  
+
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+
+# Cargar los paquetes que vamos a utilizar
+```{r}
+packages <- c("tidyverse", "knitr", "hrbrthemes", "magrittr", "lubridate", "ggplot2", "stringr")
+ipak(packages)
+```
+
+# Carga de datos de muestreo en campos de pastoreo
+```{r}
+muestreos <- read_csv2("elcuy.csv")
+head(muestreos)
+```
+
+# Ejercicio 1.
+```{r}
+FreqPastEsp <- muestreos %>% group_by(Pastoreo, Especie) %>% summarize(
+     Frequencia = sum(emergencia, na.rm = T)
+     )
+print(FreqPastEsp)
+```
+
+# Ejercicio 2. realizar ordenamiento en los datos agrupados en el inicso anterior?
+
+```{r}
+
+FreqPastEspOrd <- arrange(FreqEspPast, desc(Frequencia), by_group=TRUE)
+print(FreqPastEspOrd)
+```
+
+
+
+# Ejercicio 3.
+```{r}
+muestreosFecha <- muestreos %>% mutate(
+                    fecha = make_date(Año, mes), 
+                    .keep = c("unused"), 
+                    .after = Transecta
+                    )
+FreqPastFecha <- muestreosFecha %>% group_by(Pastoreo, fecha) %>% summarize(Frequencia = sum(emergencia, na.rm = T))
+print(FreqPastFecha)
+
+```
+
+
+# Ejercicio 4.
+```{r}
+muestreosFechaLogeme <- muestreosFecha %>% mutate(
+                    log_eme = log(emergencia), 
+                    .keep = c("unused"), 
+                    .after = Especie
+                    )
+print(muestreosFechaLogeme)
+```
+
+
+# Ejercicio 5
+
+```{r}
+coef_variacion <- function(media, des_std) {
+   des_std/media
+}
+
+StatsMuestreo <- muestreosFechaLogeme %>% group_by(Pastoreo, fecha) %>% summarize(prom=mean(log_eme), des_std=sd(log_eme), coef_var=coef_variacion(mean(log_eme), sd(log_eme))) 
+print(StatsMuestreo)
+```
+
+
+# Ejercicio 6.
+
+
+```{r}
+LogFreqPastEsp <- FreqPastEsp %>% mutate(
+                    log_eme = log(Frequencia), 
+                    .keep = c("unused"), 
+                    .after = Especie
+                    )
+LogFreqPastEsp %>% ggplot(aes(x=Pastoreo, y = Especie)) +  geom_tile(aes(fill=Frequencia)) +
+  scale_fill_distiller(palette = "YlGnBu", direction = 1)  +
+  labs(title = "Distribucion de Especies segun Pastoreo", y = "Especies")
+
+ggplot(data = LogFreqPastEsp, aes(x = Pastoreo, fill = Especie)) + geom_bar(position = "dodge") + scale_y_continuous(breaks = seq(0, 1, .2)) +
+  labs(y = "Frequencia", 
+       fill = "Especies",
+       x = "Pastoreo",
+       title = "Distribucion de Especies segun Pastoreo")
+```
+
+
+# Ejercicio 7.
+
+```{r}
+
+muestreosFechaLogeme_clean <- muestreosFechaLogeme %>% mutate(
+  Especie = ifelse(str_detect(Especie, "Sp\\d"), "No identificadas" , Especie ), 
+  .keep = c("unused")) %>% filter(Especie!="No identificadas")
+
+muestreosFechaLogeme_clean %>% ggplot(aes(x = Pastoreo, y = log_eme, fill = Especie, palette = "YlGnBu")) +
+  geom_boxplot(alpha = 0.5)
+
+
+```
