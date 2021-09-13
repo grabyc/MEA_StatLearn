@@ -1,0 +1,158 @@
+---
+title: "TP Preprocesamiento con Tidyverse"
+subtitle: "Aprendizaje Estadístico"
+author: "Laura Pérez - Gabriel Raby"
+date: "9/2/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA, background = NA, results='asis',  warning = FALSE)
+ipak <- function(pkg){
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) 
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+packages <- c("tidyverse", "magrittr", "hrbrthemes")
+ipak(packages)
+```
+
+# Ejercicio 2
+
+Se estudió la degradación de pesticidas con tres pesticidas distintos (P1, P2 y P3), aplicados en dos chacras disponibles de la zona del Alto Valle, sobre 5 árboles en cada una (entre los representativos del cuadro). En cada uno de esos árboles se señalaron 4 frutos elegidos al azar y luego de aplicar una dosis fija de los productos bajo estudio se fue registrando la degradación del mismo. Al año siguiente se repitió la experiencia
+en las mismas chacras volviéndose a sortear los árboles, frutos y registrar la relación degradación-tiempo. Los datos se muestran en el archivo *PESTICIDAS.csv*.
+
+#### 1) El ecosistema tidyverse dispone de una serie de librerías útiles para el preprocesamiento de datos. Una de las librerías es readr imprescindible para la importación de datos. Realice una escueta descripción de las funciones read_csv, read_csv2, read_tsv ¿Cómo procedería si los datos tuviesen un formato tipo .gz, .bz2, .xz, o .zip?
+
+ * **read_csv**: permite leer un archivo de datos plano separado por comas
+
+ * **read_csv2**: similar a la función anterion, pero utiliza como separador el caracter **;** y usa la **,** como punto decimal
+
+ * **read_tsv**: permite leer un archivo de datos plano separado por el caracter especial **tab**
+
+#### 2) Importar los datos del archivo *PESTICIDAS.csv* con la función adecuada
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# carga de dataset pesticidas 
+muestras <- read_csv2("data/PESTICIDA.csv") 
+```
+
+#### 3) Realizar un diagrama de dispersión entre el porcentaje de sobrevivencia y el tiempo
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(muestras, aes(x=TIEMPO, y=CONC)) + 
+  geom_point(size=6) + 
+  theme_ipsum()
+```
+
+#### 4) Coloreando los puntos tratar de visualizar si existe alguna diferencia en el patrón de degradación debido a los pesticidas distintos, o a las chacras o si hay un efecto ambiental (año) sobre el mismo.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(muestras, aes(x=TIEMPO, y=CONC, color=as.factor(PESTICIDA)  )) + 
+  geom_point(size=6) + 
+  labs(color = "Pesticida") +
+  theme_ipsum()
+```
+
+#### 5) Considera que alguna transformación de los datos podría linealizar los mismos?
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(muestras, aes(x=TIEMPO, y=CONC, color=as.factor(PESTICIDA)  )) + 
+  geom_point(size=6) + 
+  scale_y_log10() +
+  labs(color = "Pesticida (log 10)") +
+  theme_ipsum()
+```
+
+#### 6) Considere el archivo *plaguicidas_nombres.csv*, una las tablas con la función correspondiente
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+plaguicidas <- read_csv2("data/plaguicidas_nombres.csv") 
+
+muestras_2_6 <- muestras %>% 
+  inner_join(plaguicidas, by = c("PESTICIDA" = "Numero"))
+
+muestras_2_6
+```
+#### 7) Grafique los distintos plaguicidas con sus nombres haciendo uso de las facetas 
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) + 
+  geom_point(size=4) + 
+  scale_y_log10() +
+  labs(color = "Pesticida (log 10)") +
+  facet_wrap(vars(Nombre), dir = "v") +
+  theme_ipsum()
+```
+
+#### 8) Realice un gráfico de manera que se logre identificar cada uno de los plaguicidas considerando la estructura jerárquica de los datos.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) + 
+  geom_point(size=4) + 
+  scale_y_log10() +
+  labs(color = "Pesticida (log 10)") +
+  facet_grid(ARBOL ~ FRUTO) +
+  theme_ipsum()
+```  
+  
+#### 9) Ajuste el modelo utilizando la herramienta correspondiente de ggplot2.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) + 
+  geom_point(size=4) + 
+  scale_y_log10() +
+  labs(color = "Pesticida (log 10)") +
+  facet_wrap(vars(Nombre), dir = "v") +
+  theme_ipsum() +
+  stat_smooth(method = "lm", col = "grey")
+```
+
+#### 10) Obtenga para cada plaguicida un valor promedio en el depósito inicial (es decir cuando *Tiempo = 0*) y un valor promedio de degradación (es decir, al valor máximo de depósito restar el valor mínimo y dividir por la cantidad de días transcurridos) 
+
+Primero se construye el dataset con los valores *deposito_inicial* y *tasa_degradacion*
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+muestras_2_10 <- muestras_2_6 %>%
+  group_by(ANIO, CHACRA, Nombre, ARBOL, FRUTO) %>%
+  summarise(deposito_inicial = CONC[TIEMPO==0],
+            tasa_degradacion = (max(CONC)-min(CONC))/max(TIEMPO)) 
+```
+
+En los siguientes gráficos se puede observar la distribución de los valores de las nuevas variables
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+muestras_2_10 %>%
+  ggplot( aes(x=Nombre, y=deposito_inicial, fill=Nombre)) +
+  geom_boxplot() +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  xlab("Pesticida") + ylab("Deposito Inicial")
+
+muestras_2_10 %>%
+  ggplot( aes(x=Nombre, y=tasa_degradacion, fill=Nombre)) +
+  geom_boxplot() +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  xlab("Pesticida") + ylab("Tasa Degradación")
+```
+
+Luego, se obtiene el resultado buscado con los valores promedio de cada pesticida
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+muestras_2_10 %>%
+  group_by(Nombre) %>%
+  summarise(prom_deposito_inicial = mean(deposito_inicial),
+            prom_tasa_degradacion = mean(tasa_degradacion))
+```
