@@ -90,6 +90,15 @@ ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) +
 
 #### 8) Realice un gráfico de manera que se logre identificar cada uno de los plaguicidas considerando la estructura jerárquica de los datos.
 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) + 
+  geom_point(size=4) + 
+  scale_y_log10() +
+  labs(color = "Pesticida (log 10)") +
+  facet_grid(ARBOL ~ FRUTO) +
+  theme_ipsum()
+```  
+  
 #### 9) Ajuste el modelo utilizando la herramienta correspondiente de ggplot2.
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}

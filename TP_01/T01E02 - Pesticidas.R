@@ -49,6 +49,13 @@ ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) +
   theme_ipsum() +
   stat_smooth(method = "lm", col = "grey")
 
+ggplot(muestras_2_6, aes(x=TIEMPO, y=CONC, color=Nombre)) + 
+  geom_point(size=4) + 
+  scale_y_log10() +
+  labs(color = "Pesticida (log 10)") +
+  facet_grid(ARBOL ~ FRUTO) +
+  theme_ipsum()
+
 ## ej 2.10
 muestras_2_10 <- muestras_2_6 %>%
   group_by(ANIO, CHACRA, Nombre, ARBOL, FRUTO) %>%
