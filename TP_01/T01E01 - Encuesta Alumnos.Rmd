@@ -132,6 +132,7 @@ casos_1_4 %>%
 ```
 
 ###### iii.- realice un gráfico de barras con los resultados anteriores
+```{r echo=TRUE, message=FALSE}
 casos_1_4 %>%
   group_by(Sexo, ciclo) %>%
   summarize(porcentaje = (n() / count(casos_1_4)) * 100) %>%
@@ -141,7 +142,8 @@ casos_1_4 %>%
     facet_wrap( ~ ciclo) + 
     theme_ipsum() +
     labs(fill="") 
-    
+```
+ 
 #### 5) Calcule para las restantes variables (*consumiste_alcohol_este_anio*, *consumiste_alcohol_este_mes*, *consumiste_alcohol_esta_semana*, *tuviste_un_exceso_de_alcohol*) la cantidad de respuestas sí y separe por sexo.
 
 ```{r echo=TRUE, message=FALSE}
