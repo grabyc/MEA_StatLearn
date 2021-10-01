@@ -9,8 +9,10 @@ df_print: paged
 ---
   
 
-# Cargar los paquetes que vamos a utilizar
-```{r}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA, background = NA, results='asis',  warning = FALSE)
+
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg)) 
@@ -31,14 +33,15 @@ Las especies de mayor emergencia fueron las anuales *Gilia sp.* y *Ranunculacea 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Carga de datos de muestreo en campos de pastoreo
 muestreos <- read_csv2("data/elcuy.csv")
-head(muestreos)
+#head(muestreos)
 
 FreqPastEsp <- muestreos %>% 
   group_by(Pastoreo, Especie) %>% 
   summarize(
      Frequencia = sum(emergencia, na.rm = T)
      )
-print(FreqPastEsp)
+#print(FreqPastEsp)
+FreqPastEsp
 ```
 
 #### 2) Ordene de acuerdo a las especies que tuvieron mayor emergencia (mayor frecuencia).
