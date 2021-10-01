@@ -9,110 +9,152 @@ df_print: paged
 ---
   
 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = NA, background = NA, results='asis',  warning = FALSE)
+
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg)) 
     install.packages(new.pkg, dependencies = TRUE)
   sapply(pkg, require, character.only = TRUE)
 }
-
-# Cargar los paquetes que vamos a utilizar
-```{r}
 packages <- c("tidyverse", "knitr", "hrbrthemes", "magrittr", "lubridate", "ggplot2", "stringr")
 ipak(packages)
 ```
+# Ejercicio 4
 
+En un campo desertificado y con pastoreo ovino ubicado en la localidad de Aguada Guzmán (Oeste de Río Negro) se estudió la emergencia de plántulas en sitios pastoreados y clausurados al pastoreo desde septiembre de 2013 a septiembre de 2014. Se establecieron dos (2) transectas de 25 m de longitud en un área excluida al pastoreo y dos (2) transectas de igual longitud en sitios pastoreados. Las plántulas se muestrearon mediante un cuadro de 0,5 x 0,2 m que se situó sobre el terreno a intervalos regulares de 2 m en cada transecta. Se realizaron cinco campañas de muestreo: septiembre y noviembre de 2013; marzo, junio y septiembre de 2014, en las cuales se registraron todas las plántulas emergidas dentro de los cuadros. Se evaluó además la cobertura de la vegetación establecida mediante líneas de intercepción de Canfield y el contenido de humedad del suelo superficial (0-5 cm) y profundo (5-15 cm) mediante método gravimétrico. La emergencia de plántulas se evaluó también en relación a la precipitación y temperaturas. Las especies dominantes de la vegetación son, neneo (Mulinum spinosum), uña de gato (Nassauvia glomerulosa) y coirones (Pappostipa speciosa y P. humilis). La precipitación media histórica para el área de estudio es de 150 mm anuales. La precipitación durante el año 2013 fue de 159,9 mm; y durante el primer semestre del año 2014 acumuló 314,3 mm.
+
+Las especies de mayor emergencia fueron las anuales *Gilia sp.* y *Ranunculacea sp.*, y la gramínea perenne *Pappostipa sp.* Estas especies dominaron en ambos tratamientos de pastoreo.
+
+#### 1) En base a los datos del archivo **elcuy.csv** y utilizando herramientas del ecosistema *tidyverse* calcule las frecuencias a partir de la variable emergencia de las distintas especies de plantas por Pastoreo
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Carga de datos de muestreo en campos de pastoreo
-```{r}
-muestreos <- read_csv2("elcuy.csv")
-head(muestreos)
-```
+muestreos <- read_csv2("data/elcuy.csv")
+#head(muestreos)
 
-# Ejercicio 1.
-```{r}
-FreqPastEsp <- muestreos %>% group_by(Pastoreo, Especie) %>% summarize(
+FreqPastEsp <- muestreos %>% 
+  group_by(Pastoreo, Especie) %>% 
+  summarize(
      Frequencia = sum(emergencia, na.rm = T)
      )
-print(FreqPastEsp)
+#print(FreqPastEsp)
+FreqPastEsp
 ```
 
-# Ejercicio 2. realizar ordenamiento en los datos agrupados en el inicso anterior?
+#### 2) Ordene de acuerdo a las especies que tuvieron mayor emergencia (mayor frecuencia).
 
-```{r}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 
-FreqPastEspOrd <- arrange(FreqEspPast, desc(Frequencia), by_group=TRUE)
+FreqPastEspOrd <- FreqPastEsp %>%
+  group_by(Especie) %>% 
+  summarize(FreqEsp = sum(Frequencia)) %>%
+  arrange(desc(FreqEsp), by_group=TRUE)
+  
 print(FreqPastEspOrd)
 ```
 
 
 
-# Ejercicio 3.
-```{r}
-muestreosFecha <- muestreos %>% mutate(
-                    fecha = make_date(Año, mes), 
-                    .keep = c("unused"), 
-                    .after = Transecta
-                    )
-FreqPastFecha <- muestreosFecha %>% group_by(Pastoreo, fecha) %>% summarize(Frequencia = sum(emergencia, na.rm = T))
-print(FreqPastFecha)
+#### 3) Considere ahora el momento del año, convierta a formato fecha y calcule las frecuencias de las especies de acuerdo al pastoreo y al momento del año.
 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+muestreosFecha <- muestreos %>% 
+  mutate(fecha = make_date(Año, mes), 
+          .keep = c("unused"), 
+          .after = Transecta
+          )
+
+FreqPastFecha <- muestreosFecha %>% 
+  group_by(Pastoreo, fecha, Especie) %>% 
+  summarize(Frequencia = sum(emergencia, na.rm = T)) %>%
+  arrange(Pastoreo, desc(Frequencia))
+
+print(FreqPastFecha)
 ```
 
 
-# Ejercicio 4.
-```{r}
-muestreosFechaLogeme <- muestreosFecha %>% mutate(
-                    log_eme = log(emergencia), 
+#### 4) Tenga en cuenta que los valores de emergencia transformados por logaritmo tienen un comportamiento menos sesgado que el conteo directo, por ello, transforme la variable para las próximas tareas
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+muestreosFechaLogeme <- muestreosFecha %>% 
+  mutate(log_eme = log(emergencia), 
                     .keep = c("unused"), 
                     .after = Especie
                     )
+
 print(muestreosFechaLogeme)
 ```
 
 
-# Ejercicio 5
+#### 5) Calcule la emergencia promedio, desvío estándar y coeficiente de variación de las especies de acuerdo al momento del año.
 
-```{r}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 coef_variacion <- function(media, des_std) {
-   des_std/media
+   ifelse(media == 0, 0, des_std/media )
 }
 
-StatsMuestreo <- muestreosFechaLogeme %>% group_by(Pastoreo, fecha) %>% summarize(prom=mean(log_eme), des_std=sd(log_eme), coef_var=coef_variacion(mean(log_eme), sd(log_eme))) 
+StatsMuestreo <- muestreosFechaLogeme %>% 
+  group_by(Especie, fecha) %>% 
+  summarize(prom=mean(log_eme, na.rm = T), 
+            des_std=ifelse(log_eme == 0, 0 , sd(log_eme, na.rm = T) ), 
+            coef_var=coef_variacion(prom, 
+                                    des_std)) 
 print(StatsMuestreo)
 ```
 
 
-# Ejercicio 6.
+#### 6) Realice un gráfico que permita observar la emergencia de cada especie y de acuerdo a los tipos de Pastoreo considera que hay diferencias? 
 
-
-```{r}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 LogFreqPastEsp <- FreqPastEsp %>% mutate(
                     log_eme = log(Frequencia), 
                     .keep = c("unused"), 
                     .after = Especie
                     )
-LogFreqPastEsp %>% ggplot(aes(x=Pastoreo, y = Especie)) +  geom_tile(aes(fill=Frequencia)) +
-  scale_fill_distiller(palette = "YlGnBu", direction = 1)  +
-  labs(title = "Distribucion de Especies segun Pastoreo", y = "Especies")
 
-ggplot(data = LogFreqPastEsp, aes(x = Pastoreo, fill = Especie)) + geom_bar(position = "dodge") + scale_y_continuous(breaks = seq(0, 1, .2)) +
+LogFreqPastEsp %>% 
+  ggplot(aes(x=Pastoreo, y = Especie)) +  
+    geom_tile(aes(fill=log_eme)) +
+    scale_fill_distiller(palette = "YlGnBu", direction = 1)  +
+    labs(title = "Distribucion de Especies segun Pastoreo", 
+       y = "Especies",
+       fill = "Emergencia (log)")
+
+ggplot(data = LogFreqPastEsp, aes(x = Especie, y=log_eme,  fill = Especie)) + 
+  geom_bar(color = "#e9ecef", alpha = 0.6, stat = 'identity') + 
+  facet_wrap(~ Pastoreo) +
+  theme(legend.position="none") +
   labs(y = "Frequencia", 
        fill = "Especies",
        x = "Pastoreo",
-       title = "Distribucion de Especies segun Pastoreo")
+       title = "Distribucion de Especies segun Pastoreo") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+Hay diferencia entre especies entre los dos tratamientos de pastoreo.
+
+#### 7) Observe en la tabla de datos que existen varias especies no identificadas nombradas como SP1, SP2, etc, Utilizando el paquete stringr de lubridate identifique dichas especies sustituya por “No identificadas” luego filtrelos y retírelos de la base.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+muestreosFechaLogeme_clean <- muestreosFechaLogeme %>% 
+  mutate(Especie = 
+           ifelse(str_detect(Especie, "Sp\\d"), "No identificadas" , Especie ), 
+           .keep = c("unused")) %>% 
+  filter(Especie!="No identificadas")
 ```
 
+#### 8) Finalmente realice un gráfico con las especies más frecuentes que muestre los valores medios de emergencia por mes y año y de acuerdo al tipo de pastoreo. Es coincidente con la descripción planteada en el enunciado?
 
-# Ejercicio 7.
-
-```{r}
-
-muestreosFechaLogeme_clean <- muestreosFechaLogeme %>% mutate(
-  Especie = ifelse(str_detect(Especie, "Sp\\d"), "No identificadas" , Especie ), 
-  .keep = c("unused")) %>% filter(Especie!="No identificadas")
-
-muestreosFechaLogeme_clean %>% ggplot(aes(x = Pastoreo, y = log_eme, fill = Especie, palette = "YlGnBu")) +
-  geom_boxplot(alpha = 0.5)
-
-
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+FreqPastEspOrd %>%
+  top_n(4) %>%
+  inner_join(muestreosFechaLogeme_clean, by = c("Especie" = "Especie"))  %>% 
+  ggplot(aes(x = Especie, y = log_eme, fill = Especie, palette = "YlGnBu")) +
+    geom_boxplot(alpha = 0.5) +
+    facet_grid(fecha ~ Pastoreo)
 ```
+
+Es coincidente con la descripción planteada en el enunciado.
