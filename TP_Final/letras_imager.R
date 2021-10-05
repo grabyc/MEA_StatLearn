@@ -43,10 +43,9 @@ binLabels <- names(imgList) %>% map(getBinaryLabel)
 imgMatrix <- as_tibble(cbind(unlist(binLabels), 
                              matrix(unlist(imgList), nrow=length(imgList), byrow=TRUE)))
 
-##TODO: revisar factor() w/ 1 level, cambia valores, xq??
 imgMatrix <- rename(imgMatrix, letra = V1) %>% 
   mutate(letra = if_else(letra==1, "aes", "noaes"),
-         letra = factor(letra, levels = "aes", "noaes"))
+         letra = factor(letra, levels = c("aes", "noaes")))
 
 ##imgMatrix %<>% rename(letra = V1) %>% 
 ##                mutate( letra = if_else(letra==1, "aes", "noaes"),
