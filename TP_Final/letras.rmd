@@ -1,0 +1,61 @@
+---
+  title: "TP Preprocesamiento con Tidyverse"
+subtitle: "Aprendizaje Estadístico"
+author: "Laura Pérez - Gabriel Raby"
+date: "9/2/2021"
+output:
+  html_document:
+  df_print: paged
+---
+  
+
+# Cargar los paquetes que vamos a utilizar
+```{r}
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg))
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+
+packages <- c("tidyverse", "knitr", "hrbrthemes", "magrittr", "lubridate",
+              "ggplot2", "stringr", "fs", "magick", "tidymodels", "vip", "rpart.plot")
+ipak(packages)
+```
+
+# Carga y pre-processamiento de datos
+
+```{r}
+# Construir camino donde se encuentran los archivos de imagenes
+list_jpg = dir_ls(path=here::here("letras/letras"), glob = "*.jpg")
+
+# leer todos los archivos de imagenes
+img_database <- list_jpg %>%
+  map(image_read)   # leer cada archivo
+head(img_database)
+
+# leer clases/etiquetas a partir de los nombre de archivos
+getFileName <- function(input) {
+  ret <- str_split(input, "/")
+  str_sub(ret[[1]][length(ret[[1]])], 1, 1)
+}
+
+etiquetas <- data.frame( list_jpg %>% map(getFileName))
+head(etiquetas)
+
+```
+
+
+```{r}
+# funcion para cambiar la densidad de la imagen
+magick_attr_density <- function(input, density) {
+  .Call('_magick_magick_attr_density', PACKAGE = 'magick', input, density)
+}
+
+
+out <- image_join(img_database)
+try(magick_attr_density(out, '64x64'))
+head(out)
+image_info(out)
+
+```
