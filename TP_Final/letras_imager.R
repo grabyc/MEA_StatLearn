@@ -27,17 +27,17 @@ plot(imgList[[1]])
 
 # leer clases/etiquetas a partir de los nombre de archivos
 
-##getLabelName <- function(input) {
-##  ret <- str_split(input, "/")
-##  str_sub(ret[[1]][length(ret[[1]])], 1, 1)
-##}
+getLabelName <- function(input) {
+  ret <- str_split(input, "/")
+  str_sub(ret[[1]][length(ret[[1]])], 1, 1)
+}
 
 getBinaryLabel <- function(input) {
   ret <- str_split(input, "/")
   ifelse(str_sub(ret[[1]][length(ret[[1]])], 1, 1) == "a", 1, 2 )
 }
 
-##allLabels <- names(imgList) %>% map(getLabelName) %>% unlist()
+allLabels <- names(imgList) %>% map(getLabelName) %>% unlist()
 binLabels <- names(imgList) %>% map(getBinaryLabel) 
 
 imgMatrix <- as_tibble(cbind(unlist(binLabels), 
@@ -47,13 +47,27 @@ imgMatrix <- rename(imgMatrix, letra = V1) %>%
   mutate(letra = if_else(letra==1, "aes", "noaes"),
          letra = factor(letra, levels = c("aes", "noaes")))
 
+t <- as_tibble(t(imgMatrix[, -1])) 
+print(t)
+t %<>%
+  rowSums()
+
+t <- as.data.frame(t)
+t <- as_tibble(t)
+t[t[1]==86]  
+
+t %>% filter(t <= 85)
+presente <- (t %>% mutate(p = t <= 85) %>% select(p))$p
+
+redux_matrix <- imgMatrix[,as.vector(c(TRUE,presente)) ==TRUE]
+
 ##imgMatrix %<>% rename(letra = V1) %>% 
 ##                mutate( letra = if_else(letra==1, "aes", "noaes"),
 ##                        letra = factor(letra, levels = "aes", "noaes"))
 
 dim(imgMatrix)
+dim(redux_matrix)
 head(imgMatrix, 1)
-
 
 ######################################################################
 ###
@@ -62,13 +76,16 @@ head(imgMatrix, 1)
 ######################################################################
 
 # graph of allLabels and binLabels to see the distribution of training examples
+g <- as.data.frame(allLabels) %>%
+  ggplot( aes(x=allLabels)) +
+  geom_histogram(stat="count", fill="#69b3a2", color="#e9ecef", alpha=0.9) 
+
 
 #posibles analisis
 
-##TODO: no pude hacerlo correr
 pca.m = prcomp(imgMatrix[,-1], scale=TRUE)
 
-modelo_logistico <- glm(letra ~ ., data = imgMatrix, family = "binomial")
+modelo_logistico <- glm(letra ~ ., data = redux_matrix, family=binomial(link='logit'))  ## family = "binomial")
 
 
 ######################################################################
@@ -86,4 +103,11 @@ fitted_logistic_model <- logistic_reg() %>%
   set_engine("glm") %>%
   set_mode("classification") %>%
   fit(letra ~., data = letras_train)
+
+tidy(fitted_logistic_model) %>% filter(!is.na(estimate))
+tidy(fitted_logistic_model, exponentiate=TRUE) %>% filter(!is.na(estimate))
+
+classif <- predict(fitted_logistic_model, letras_test, type="class")
+##
+
 
