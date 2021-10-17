@@ -18,7 +18,7 @@ ipak(packages)
 ###     - armar matriz de trabajo [img, v1, ..., v_i, ... , v_(x*y)]
 ###
 ######################################################################
-imgList <- load.dir("./letras/letras") %>%
+imgList <- load.dir("./letras") %>%
   map(resize, 100, 100) %>%
   map(function(x) as.cimg(as.vector(round(x, digits = 0)))) %>%
   map(grayscale)
@@ -94,7 +94,7 @@ modelo_logistico <- glm(letra ~ ., data = redux_matrix, family=binomial(link='lo
 ###
 ######################################################################
 
-letras_split <- initial_split(imgMatrix, strata = letra)
+letras_split <- initial_split(imgMatrix, prop = 0.70, strata = letra)
 letras_train <- training(letras_split)
 letras_test <- testing(letras_split)
 letras_kfold <- vfold_cv(letras_train, v = 5)
@@ -102,12 +102,12 @@ letras_kfold <- vfold_cv(letras_train, v = 5)
 fitted_logistic_model <- logistic_reg() %>%
   set_engine("glm") %>%
   set_mode("classification") %>%
-  fit(letra ~., data = letras_train)
+  fit(letra ~., data = letras_train[1:50,1:100])
 
 tidy(fitted_logistic_model) %>% filter(!is.na(estimate))
 tidy(fitted_logistic_model, exponentiate=TRUE) %>% filter(!is.na(estimate))
 
-classif <- predict(fitted_logistic_model, letras_test, type="class")
+classif <- predict(fitted_logistic_model, letras_test[1:10,1:100], type="class")
 ##
 
 
