@@ -38,11 +38,11 @@ Conjunto de 86 imágenes de letras manuscritas
 
 * **Tamaño**: 200 x 200 px
 
-<img align="center" width="150" height="100" src="./letras2/01 - a.jpg">
-<img align="center" width="150" height="100" src="./letras2/41 - e.jpg">
-<img align="center" width="150" height="100" src="./letras2/50 - i.jpg">
-<img align="center" width="150" height="100" src="./letras2/69 - o.jpg">
-<img align="center" width="150" height="100" src="./letras2/84 - u.jpg">
+<img align="center" width="150" height="100" src="./letras/a (1).jpg">
+<img align="center" width="150" height="100" src="./letras/e6.jpg">
+<img align="center" width="150" height="100" src="./letras/i2.jpg">
+<img align="center" width="150" height="100" src="./letras/o8.jpg">
+<img align="center" width="150" height="100" src="./letras/u_iña2.jpg">
 
 ## Objetivo
 
@@ -186,8 +186,7 @@ Usando funciones de *tidymodels* se define el modelo de regresión logística
 fitted_logistic_model <- logistic_reg() %>%
   set_engine("glm") %>%
   set_mode("classification") %>%
-  fit(letra ~., data = letras_train[1:5,1:100])
-#  fit(letra ~., data = letras_train)
+  fit(letra ~., data = letras_train)
 
 tidy(fitted_logistic_model, exponentiate=TRUE)
 ```
@@ -196,19 +195,16 @@ tidy(fitted_logistic_model, exponentiate=TRUE)
 
 ```{r logistic_test, warning=FALSE}
 pred_class <- predict(fitted_logistic_model,
-                      new_data = letras_test[1:5,1:100],
+                      new_data = letras_test,
                       type = "class")
-#                      new_data = letras_test,
 
 pred_proba <- predict(fitted_logistic_model,
-                      new_data = letras_test[1:5,1:100],
+                      new_data = letras_test,
                       type = "prob")
-#                      new_data = letras_test,
 
-letras_results <- letras_test[1:5,1:100] %>%
+letras_results <- letras_test %>%
   select(letra) %>%
   bind_cols(pred_class, pred_proba)
-#letras_results <- letras_test %>%
 
 letras_results[1:5, ]
 ```
@@ -253,8 +249,7 @@ También se utilizan funciones de *tidymodels* para realizar una clasificación 
 fitted_knn_model <- nearest_neighbor() %>% 
   set_engine("kknn") %>% 
   set_mode("classification") %>%
-  fit(letra ~., data = letras_train[,1:100])
-#  fit(letra ~., data = letras_train)
+  fit(letra ~., data = letras_train)
 
 fitted_knn_model
 ```
@@ -263,19 +258,16 @@ fitted_knn_model
 
 ```{r knn_test, warning=FALSE}
 pred_class <- predict(fitted_knn_model,
-                      new_data = letras_test[,1:100],
+                      new_data = letras_test,
                       type = "class")
-#                      new_data = letras_test,
 
 pred_proba <- predict(fitted_knn_model,
-                      new_data = letras_test[,1:100],
+                      new_data = letras_test,
                       type = "prob")
-#                      new_data = letras_test,
 
-letras_results <- letras_test[,1:100] %>%
+letras_results <- letras_test %>%
   select(letra) %>%
   bind_cols(pred_class, pred_proba)
-#letras_results <- letras_test %>%
 
 letras_results[1:5, ]
 ```
