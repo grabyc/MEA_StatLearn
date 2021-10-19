@@ -253,7 +253,7 @@ También se utilizan funciones de *tidymodels* para realizar una clasificación 
 ## Definición y ajuste del modelo: Clasificación K-NN (2 de 2)
 
 ```{r knn_train, warning=FALSE}
-fitted_knn_model <- nearest_neighbor() %>% 
+fitted_knn_model <- nearest_neighbor(neighbors = 2) %>% 
   set_engine("kknn") %>% 
   set_mode("classification") %>%
   fit(letra ~., data = letras_train)

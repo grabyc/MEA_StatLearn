@@ -2052,7 +2052,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 </ol>
 </section><section id="definición-del-modelo-clasificación-k-nn-2-de-2" class="slide level2">
 <h2>Definición del modelo: Clasificación K-NN (2 de 2)</h2>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>fitted_knn_model &lt;-<span class="st"> </span><span class="kw">nearest_neighbor</span>() <span class="op">%&gt;%</span><span class="st"> </span></span>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>fitted_knn_model &lt;-<span class="st"> </span><span class="kw">nearest_neighbor</span>(<span class="dt">neighbors =</span> <span class="dv">2</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb19-2"><a href="#cb19-2"></a><span class="st">  </span><span class="kw">set_engine</span>(<span class="st">&quot;kknn&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb19-3"><a href="#cb19-3"></a><span class="st">  </span><span class="kw">set_mode</span>(<span class="st">&quot;classification&quot;</span>) <span class="op">%&gt;%</span></span>
 <span id="cb19-4"><a href="#cb19-4"></a><span class="st">  </span><span class="kw">fit</span>(letra <span class="op">~</span>., <span class="dt">data =</span> letras_train)</span>
@@ -2060,15 +2060,15 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <span id="cb19-6"><a href="#cb19-6"></a>fitted_knn_model</span></code></pre></div>
 <pre><code>## parsnip model object
 ## 
-## Fit time:  7.5s 
+## Fit time:  7.7s 
 ## 
 ## Call:
-## kknn::train.kknn(formula = letra ~ ., data = data, ks = min_rows(5,     data, 5))
+## kknn::train.kknn(formula = letra ~ ., data = data, ks = min_rows(2,     data, 5))
 ## 
 ## Type of response variable: nominal
 ## Minimal misclassification: 0.7118644
 ## Best kernel: optimal
-## Best k: 5</code></pre>
+## Best k: 2</code></pre>
 </section><section id="predicción-del-modelo-clasificación-k-nn" class="slide level2">
 <h2>Predicción del modelo: Clasificación K-NN</h2>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>pred_class &lt;-<span class="st"> </span><span class="kw">predict</span>(fitted_knn_model,</span>
@@ -2087,11 +2087,11 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <pre><code>## # A tibble: 5 × 4
 ##   letra .pred_class .pred_aes .pred_noaes
 ##   &lt;fct&gt; &lt;fct&gt;           &lt;dbl&gt;       &lt;dbl&gt;
-## 1 aes   aes             0.766       0.234
-## 2 aes   aes             0.766       0.234
-## 3 aes   noaes           0.385       0.615
-## 4 aes   aes             0.766       0.234
-## 5 aes   aes             0.766       0.234</code></pre>
+## 1 aes   aes             1           0    
+## 2 aes   aes             1           0    
+## 3 aes   noaes           0.153       0.847
+## 4 aes   aes             1           0    
+## 5 aes   aes             1           0</code></pre>
 </section><section id="evaluación-del-modelo-clasificación-k-nn-1-de-2" class="slide level2">
 <h2>Evaluación del modelo: Clasificación K-NN (1 de 2)</h2>
 <p>Se presenta matriz de confusión</p>
