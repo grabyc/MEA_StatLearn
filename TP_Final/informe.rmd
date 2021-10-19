@@ -3,11 +3,7 @@ title: "Clasificación de imágenes de letras"
 subtitle: "Aprendizaje Estadístico"
 author: "Laura Pérez - Gabriel Raby"
 date: "14 de Octubre 2021"
-output:
-  revealjs::revealjs_presentation:
-    theme: solarized
-    highlight: kate
-    center: no
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -44,9 +40,6 @@ Conjunto de 86 imágenes de letras manuscritas
 <img align="center" width="150" height="100" src="./letras/o8.jpg">
 <img align="center" width="150" height="100" src="./letras/u_iña2.jpg">
 
-## Distribucion de letras
-
-Agregar grafico con distribucion de clases en el conjunto de datos.
 
 ## Objetivo
 
