@@ -193,8 +193,6 @@ fitted_logistic_model <- logistic_reg() %>%
   set_mode("classification") %>%
   fit(letra ~., data = letras_train)
 
-Coeficientes filtrados por NA: *TODO* 
-
 tidy(fitted_logistic_model, exponentiate=TRUE)
 ```
 
@@ -302,9 +300,26 @@ sens(letras_results, truth = letra,
 
 # Conclusiones
 
-* Elegimos representar las imágenes como un vector de pixeles, donde cada dimensión representa una posición o pixel de la imagen. De esta manera nuestro conjunto de variables independientes es igual al numero de elementos de este vectores (es decir, 10.000 en nuestra implementación).
-* Probamos con dos algoritmos de clasificación supervisados: regresión logística y KNN. En el caso de regresión logística hemos visto que una gran parte de las variables explicativas obtiene un coeficiente distinto de NA. Lo cual consideramos adecuado dado que para ciertas variables (es decir, elementos del vector) todas las instancias de datos tienen el mismo valor.
-* En términos de performance, el modelo de regresión logística obtiene valor de accuracy 0.67 indicando una buena performance del modelo. Sin embargo, cuando miramos el estadístico sensibilidad, este es bajo 0.25; dado el des-balance de datos (mayor cantidad de noaes) el modelo focaliza su ajuste en esta clase. El modelo KNN por otro lado, logra una clasificación relativamente buena para la clase aes (sensibilidad 0.85) pero obtiene una mala performance clasificando el resto de las letras. Esta pobre clasificación de noaes se puede relacionar a que el conjunto de noaes, esta formado por el complemento de letras (e, i, o, u) las cuales pueden tener distancias lejanas entre ellas y por lo tanto no se clasificadas correctamente dentro de la misma clase.
-* Pruebas preliminares en KNN multi-clase (es decir, todas las posibles letras) arroja similar sesgo del modelo hacia la clase mas numerosa (es decir, letra a).
-* Pruebas con Support Vector Machines (SVM) no fueron concluidas por error arrojado por la función fit(). Según nuestro entendimiento puede haber alguna incompatibilidad el vector pixeles 0s y 1s. Una alternativa a probar como trabajo futuro es con un vector con otro formato.
-* Otra pista a explorar en trabajo futuro es augmentar el conjunto de datos inicial con imágenes sintéticas. Estas pueden ser creadas automáticamente aplicando *perturbaciones* tales como rotación o difuminar.
+## Conclusiones (1 de 3)
+
+* Elegimos representar las imágenes como un vector de pixeles, donde cada dimensión representa una posición o pixel de la imagen. De esta manera nuestro conjunto de variables independientes es igual al numero de elementos de este vector (es decir, 10.000 en nuestra implementación).  
+
+* Probamos con dos algoritmos de clasificación supervisados: **regresión logística** y **K-NN**. En el caso de regresión logística, hemos visto que una gran parte de las variables explicativas obtiene un coeficiente distinto de NA. Lo cual consideramos adecuado dado que para ciertas variables (es decir, elementos del vector) todas las instancias de datos tienen el mismo valor.
+
+## Conclusiones (2 de 3)
+
+En términos de performance
+
+* **Regresión logística**: el modelo obtiene un valor de *accuracy* de **0.67** indicando una buena performance. Sin embargo, cuando miramos el estadístico *sensibilidad*, este es bajo **0.25**; dado el desbalance de datos (mayor cantidad de observaciones de la clase *noaes*) el modelo focaliza su ajuste en esta clase. 
+
+* **Clasificación K-NN**: el modelo logra una clasificación relativamente buena para la clase *aes* (*sensibilidad* **0.85**) pero obtiene una mala performance clasificando el resto de las letras. Esta pobre clasificación de *noaes* se puede relacionar a que el conjunto de *noaes* está formado por el complemento de letras (e, i, o, u) las cuales pueden tener distancias lejanas entre ellas y por lo tanto no se clasificadas correctamente dentro de la misma clase.
+
+## Conclusiones (3 de 3)
+
+Otras consideraciones finales incluyen:
+
+* Pruebas preliminares en **K-NN multi-clase** (es decir, todas las posibles letras) arroja similar sesgo del modelo hacia la clase mas numerosa (es decir, letra a).
+
+* Pruebas con **Support Vector Machines (SVM)** no fueron concluidas por error arrojado por la función ksvm() durante el ajuste. Según nuestro entendimiento puede haber alguna incompatibilidad con el vector de pixeles 0s y 1s. Una alternativa a probar como trabajo futuro es con un vector con otro formato.
+
+* Otra pista a explorar en trabajo futuro es aumentar el conjunto de datos inicial con imágenes sintéticas. Estas pueden ser creadas automáticamente aplicando *perturbaciones* tales como rotación o difuminación.
