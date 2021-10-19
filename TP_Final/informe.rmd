@@ -44,8 +44,13 @@ Conjunto de 86 imágenes de letras manuscritas
 <img align="center" width="150" height="100" src="./letras/o8.jpg">
 <img align="center" width="150" height="100" src="./letras/u_iña2.jpg">
 
+## Distribucion de letras
+
+Agregar grafico con distribucion de clases en el conjunto de datos.
+
 ## Objetivo
 
+Para simplificar la tarea de clasificacion en lugar de clasificacion multi-clase en primera instancia se decidio defininir un objetivo de clasificacion binaria. 
 Se pretende generar un modelo estadístico que pueda clasificar las imágenes de letras según el siguiente criterio:
 
 * Criterio positivo: **es** una *letra a*
@@ -168,7 +173,7 @@ letras_test <- testing(letras_split)
 nrow(letras_train);nrow(letras_test)
 ```
 
-## Definición del modelo: Regresión Logística (1 de 2)
+## Definición y Ajuste del modelo: Regresión Logística (1 de 2)
 
 Usando funciones de *tidymodels* se define el modelo de regresión logística
 
@@ -180,13 +185,15 @@ Usando funciones de *tidymodels* se define el modelo de regresión logística
 
 4. Se usa la función `fit()` para ajustar el modelo a partir de los datos de entrenamiento.
 
-## Definición del modelo: Regresión Logística (2 de 2)
+## Definición y Ajuste del modelo: Regresión Logística (2 de 2)
 
 ```{r logistic_train, warning=FALSE}
 fitted_logistic_model <- logistic_reg() %>%
   set_engine("glm") %>%
   set_mode("classification") %>%
   fit(letra ~., data = letras_train)
+
+Coeficientes filtrados por NA: *TODO* 
 
 tidy(fitted_logistic_model, exponentiate=TRUE)
 ```
@@ -230,7 +237,7 @@ sens(letras_results, truth = letra,
          estimate = .pred_class)
 ```
 
-## Definición del modelo: Clasificación K-NN (1 de 2)
+## Definición y ajuste del modelo: Clasificación K-NN (1 de 2)
 
 También se utilizan funciones de *tidymodels* para realizar una clasificación K-NN
 
@@ -243,7 +250,7 @@ También se utilizan funciones de *tidymodels* para realizar una clasificación 
 4. Se usa la función `fit()` para ajustar el modelo a partir de los datos de entrenamiento.
 
 
-## Definición del modelo: Clasificación K-NN (2 de 2)
+## Definición y ajuste del modelo: Clasificación K-NN (2 de 2)
 
 ```{r knn_train, warning=FALSE}
 fitted_knn_model <- nearest_neighbor() %>% 
@@ -294,4 +301,11 @@ sens(letras_results, truth = letra,
 ```
 
 # Conclusiones
+
+* Elegimos representar las imágenes como un vector de pixeles, donde cada dimensión representa una posición o pixel de la imagen. De esta manera nuestro conjunto de variables independientes es igual al numero de elementos de este vectores (es decir, 10.000 en nuestra implementación).
+* Probamos con dos algoritmos de clasificación supervisados: regresión logística y KNN. En el caso de regresión logística hemos visto que una gran parte de las variables explicativas obtiene un coeficiente distinto de NA. Lo cual consideramos adecuado dado que para ciertas variables (es decir, elementos del vector) todas las instancias de datos tienen el mismo valor.
+* En términos de performance, ambos modelos alcanzan un buen valor de accuracy ~0,7 indicando una buena performance del modelo. Sin embargo, cuando miramos el estadístico sensibilidad, este bajo ~0,3. Dado el des-balance de datos (mayor cantidad de noaes) el modelo focaliza su ajuste en esta clase.
+* Pruebas preliminares en knn multi-clase (es decir, las vocales) arroja similar sesgo del modelo hacia la clase mas numerosa.
+* Pruebas con Support Vector Machines (SVM) no fueron concluidas por error arrojado por la función fit(). Según nuestro entendimiento puede haber alguna incompatibilidad el vector pixeles 0s y 1s. Una alternativa a probar como trabajo futuro es con un vector con otro formato.
+* Otra pista a explorar en trabajo futuro es augmentar el conjunto de datos inicial con imágenes sintéticas. Estas pueden ser creadas automáticamente aplicando *perturbaciones* tales como rotación o difuminar.
 
